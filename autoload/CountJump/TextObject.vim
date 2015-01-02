@@ -235,7 +235,8 @@ function! CountJump#TextObject#TextObjectWithJumpFunctions( mode, isInner, isExc
 "****D echomsg '**** text object from' string(l:beginPosition) 'to' string(l:endPosition)
 		" When the end position is before the begin position, that's not
 		" a valid selection.
-		if ingo#pos#IsBefore(l:endPosition[1:2], l:beginPosition[1:2])
+		if l:endPosition[1] < l:beginPosition[1] ||
+		\   l:endPosition[1] == l:beginPosition[1] && l:endPosition[2] < l:beginPosition[2]
 		    execute "normal! \<C-\>\<C-n>\<Esc>"
 
 		    call winrestview(l:save_view)

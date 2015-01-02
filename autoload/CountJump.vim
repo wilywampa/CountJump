@@ -102,7 +102,10 @@
 
 function! s:WrapMessage( searchName, isBackward )
     if &shortmess !~# 's'
-	call ingo#msg#WarningMsg(a:searchName . ' ' . (a:isBackward ? 'hit TOP, continuing at BOTTOM' : 'hit BOTTOM, continuing at TOP'))
+	let v:warningmsg = a:searchName . ' ' . (a:isBackward ? 'hit TOP, continuing at BOTTOM' : 'hit BOTTOM, continuing at TOP')
+	echohl WarningMsg
+	echomsg v:warningmsg
+	echohl None
     endif
 endfunction
 function! CountJump#CountSearchWithWrapMessage( count, searchName, searchArguments )
@@ -162,9 +165,9 @@ function! CountJump#CountSearchWithWrapMessage( count, searchName, searchArgumen
 
 	" Note: No need to check s:searchArguments and 'wrapscan'; the wrapping
 	" can only occur if 'wrapscan' is actually on.
-	if ! l:isBackward && ingo#pos#IsOnOrAfter([l:prevLine, l:prevCol], l:matchPosition)
+	if ! l:isBackward && (l:prevLine > l:matchPosition[0] || l:prevLine == l:matchPosition[0] && l:prevCol >= l:matchPosition[1])
 	    let l:isWrapped = 1
-	elseif l:isBackward && ingo#pos#IsOnOrBefore([l:prevLine, l:prevCol], l:matchPosition)
+	elseif l:isBackward && (l:prevLine < l:matchPosition[0] || l:prevLine == l:matchPosition[0] && l:prevCol <= l:matchPosition[1])
 	    let l:isWrapped = 1
 	endif
 	let [l:prevLine, l:prevCol] = l:matchPosition
@@ -329,7 +332,7 @@ function! CountJump#JumpFunc( mode, JumpFunc, ... )
 	    " line.
 	    let l:save_ww = &whichwrap
 	    set whichwrap+=l
-	    if a:mode ==# 'O' && line('.') == line('$') && ! ingo#option#ContainsOneOf(&virtualedit, ['all', 'onemore'])
+	    if a:mode ==# 'O' && line('.') == line('$') && &virtualedit !=# 'onemore' && &virtualedit !=# 'all'
 		" For the last line in the buffer, that still doesn't work,
 		" unless we can do virtual editing.
 		let l:save_virtualedit = &virtualedit
@@ -397,9 +400,9 @@ function! CountJump#CountJumpFuncWithWrapMessage( count, searchName, isBackward,
 	    return l:matchPosition
 	endif
 
-	if ! a:isBackward && ingo#pos#IsOnOrAfter([l:prevLine, l:prevCol], l:matchPosition)
+	if ! a:isBackward && (l:prevLine > l:matchPosition[0] || l:prevLine == l:matchPosition[0] && l:prevCol >= l:matchPosition[1])
 	    let l:isWrapped = 1
-	elseif a:isBackward && ingo#pos#IsOnOrBefore([l:prevLine, l:prevCol], l:matchPosition)
+	elseif a:isBackward && (l:prevLine < l:matchPosition[0] || l:prevLine == l:matchPosition[0] && l:prevCol <= l:matchPosition[1])
 	    let l:isWrapped = 1
 	endif
 	let [l:prevLine, l:prevCol] = l:matchPosition
